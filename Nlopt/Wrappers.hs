@@ -56,6 +56,7 @@ module Nlopt.Wrappers( -- * misc stuff
                      , nloptSetInitialStep
                      , nloptSetInitialStep1
                      , nloptGetInitialStep
+                     , NloptOpt
                      ) where
 
 import Foreign.C
@@ -66,16 +67,36 @@ import Control.Monad(liftM)
 import Nlopt.Enums
 import Nlopt.Bindings
 
-data NloptOpt = NloptOpt (ForeignPtr S_nlopt_opt_s) deriving Show
+data NloptOpt = NloptOpt (ForeignPtr S_nlopt_opt_s)
 
+instance Show NloptOpt where
+  show opt = (rstrip . unlines . unsafePerformIO . sequence)
+             [ liftM (\x -> "Algorithm:   "++ nloptAlgorithmName x) $ nloptGetAlgorithm opt
+             , liftM (\x -> "Dimension:   "++ show x      ) $ nloptGetDimension opt
+             , liftM (\x -> "LowerBounds: "++ show (fst x)) $ nloptGetLowerBounds opt
+             , liftM (\x -> "UpperBounds: "++ show (fst x)) $ nloptGetUpperBounds opt
+             , liftM (\x -> "Stopval:     "++ show x      ) $ nloptGetStopval opt
+             , liftM (\x -> "FtolRel:     "++ show x      ) $ nloptGetFtolRel opt
+             , liftM (\x -> "FtolAbs:     "++ show x      ) $ nloptGetFtolAbs opt
+             , liftM (\x -> "XtolRel:     "++ show x      ) $ nloptGetXtolRel opt
+             , liftM (\x -> "XtolAbs:     "++ show (fst x)) $ nloptGetXtolAbs opt
+             , liftM (\x -> "Maxeval:     "++ show x      ) $ nloptGetMaxeval opt
+             , liftM (\x -> "Maxtime:     "++ show x      ) $ nloptGetMaxtime opt
+             , liftM (\x -> "ForceStop:   "++ show x      ) $ nloptGetForceStop opt
+             ]
+    where
+      rstrip :: String -> String
+      rstrip ['\n'] = []
+      rstrip (x:xs) = x:rstrip xs
+      rstrip x = x
 
 ----------------------------------------------------------------------------------
 ----------------------------------- misc -----------------------------------------
 ----------------------------------------------------------------------------------
 
 --c_nlopt_algorithm_name :: T_nlopt_algorithm -> IO (Ptr CChar)
-nloptAlgorithmName :: NloptAlgorithm -> IO String
-nloptAlgorithmName alg = do
+nloptAlgorithmName :: NloptAlgorithm -> String
+nloptAlgorithmName alg = unsafePerformIO $ do
   char <- c_nlopt_algorithm_name (algorithmToCInt alg)
   string <- peekCString char
   return string

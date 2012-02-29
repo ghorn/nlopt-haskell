@@ -17,6 +17,8 @@ library
                        Nlopt.Wrappers
                        Nlopt.Enums
                        Nlopt.Bindings
+                       Nlopt.Examples
+
   -- other-modules:      
   build-depends:       base >= 4 && < 5
 

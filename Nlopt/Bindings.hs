@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wall #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 module Nlopt.Bindings( c_nlopt_algorithm_name
                      , c_nlopt_srand
@@ -64,7 +64,7 @@ module Nlopt.Bindings( c_nlopt_algorithm_name
                      , c_nlopt_get_initial_step
                      , T_nlopt_func
                      , T_nlopt_mfunc
-                     , S_nlopt_opt_s(..)
+                     , S_nlopt_opt_s
                      ) where
 
 import Foreign(Ptr, FunPtr)
@@ -74,7 +74,7 @@ import Nlopt.Enums(T_nlopt_result, T_nlopt_algorithm)
 
 type T_nlopt_func = CUInt -> Ptr CDouble -> Ptr CDouble -> Ptr CChar -> IO CDouble
 type T_nlopt_mfunc = CUInt -> Ptr CDouble -> CUInt -> Ptr CDouble -> Ptr CDouble -> Ptr CChar -> IO ()
-data S_nlopt_opt_s = S_nlopt_opt_s
+data S_nlopt_opt_s
 
 
 foreign import ccall "static /usr/local/include/nlopt.h nlopt_algorithm_name"

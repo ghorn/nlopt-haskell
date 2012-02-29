@@ -64,7 +64,7 @@ data NloptAlgorithm = NLOPT_GN_DIRECT
                     | NLOPT_G_MLSL
                     | NLOPT_G_MLSL_LDS
                     | NLOPT_LD_SLSQP
-                    | NLOPT_NUM_ALGORITHMS
+                    | NLOPT_NUM_ALGORITHMS deriving (Eq, Show)
 
 data NloptResult = NLOPT_FAILURE
                  | NLOPT_INVALID_ARGS
@@ -76,7 +76,7 @@ data NloptResult = NLOPT_FAILURE
                  | NLOPT_FTOL_REACHED
                  | NLOPT_XTOL_REACHED
                  | NLOPT_MAXEVAL_REACHED
-                 | NLOPT_MAXTIME_REACHED
+                 | NLOPT_MAXTIME_REACHED deriving (Eq, Show)
 
 algorithmToCInt :: NloptAlgorithm -> T_nlopt_algorithm
 algorithmToCInt NLOPT_GN_DIRECT = 0
