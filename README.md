@@ -1,8 +1,10 @@
-* Nlopt-haskell
+# Nlopt-haskell
 
 This is a set of bindings to the NLOPT library
 
-Get it with "git clone https://github.com/ghorn/nlopt-haskell"
+Get it with
+
+    git clone https://github.com/ghorn/nlopt-haskell
 
 You have to install Nlopt yourself with:
 
