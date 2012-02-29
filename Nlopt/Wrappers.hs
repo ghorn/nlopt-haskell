@@ -3,8 +3,8 @@
 
 module Nlopt.Wrappers( -- * misc stuff
                        nloptAlgorithmName
-                     , nloptSrand
-                     , nloptSrandTime
+                     , nloptSRand
+                     , nloptSRandTime
                      , nloptVersion
                      -- * api
                      , nloptCreate
@@ -81,12 +81,12 @@ nloptAlgorithmName alg = do
   return string
 
 --c_nlopt_srand :: CULong -> IO ()
-nloptSrand :: Int -> IO ()
-nloptSrand = c_nlopt_srand . fromIntegral
+nloptSRand :: Int -> IO ()
+nloptSRand = c_nlopt_srand . fromIntegral
 
 --c_nlopt_srand_time :: IO ()
-nloptSrandTime :: IO ()
-nloptSrandTime = c_nlopt_srand_time
+nloptSRandTime :: IO ()
+nloptSRandTime = c_nlopt_srand_time
 
 --c_nlopt_version :: Ptr CInt -> Ptr CInt -> Ptr CInt -> IO ()
 nloptVersion :: (Int,Int,Int)
