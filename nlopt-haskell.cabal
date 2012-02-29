@@ -1,0 +1,32 @@
+name:                nlopt-haskell
+version:             0.1.0.0
+synopsis:            bindings to NLOPT optimization library
+-- description:         
+license:             BSD3
+license-file:        LICENSE
+author:              Greg Horn
+maintainer:          gregmainland@gmail.com
+-- copyright:           
+category:            Math
+build-type:          Simple
+cabal-version:       >=1.8
+
+library
+  ghc-options:         -Wall
+  exposed-modules:     Nlopt
+                       Nlopt.Wrappers
+                       Nlopt.Enums
+                       Nlopt.Bindings
+  -- other-modules:      
+  build-depends:       base >= 4 && < 5
+
+--  extra-lib-dirs:      /usr/local/lib
+--  extra-libraries:     nlopt
+--  include-dirs:        /usr/local/include
+--  Includes:            nlopt.h
+  pkgconfig-depends:   nlopt
+
+source-repository head
+  type: git
+  location: git://github.com/ghorn/nlopt-haskell.git
+--  tag: 
