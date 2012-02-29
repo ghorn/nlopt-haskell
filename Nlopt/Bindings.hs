@@ -11,7 +11,9 @@ module Nlopt.Bindings( c_nlopt_algorithm_name
                      , c_nlopt_copy
                      , c_nlopt_optimize
                      , c_nlopt_set_min_objective
+                     , w_nlopt_set_min_objective_1
                      , c_nlopt_set_max_objective
+                     , w_nlopt_set_max_objective_1
                      , c_nlopt_get_algorithm
                      , c_nlopt_get_dimension
                        -- * constraints
@@ -23,10 +25,14 @@ module Nlopt.Bindings( c_nlopt_algorithm_name
                      , c_nlopt_get_upper_bounds
                      , c_nlopt_remove_inequality_constraints
                      , c_nlopt_add_inequality_constraint
+                     , w_nlopt_add_inequality_constraint_1
                      , c_nlopt_add_inequality_mconstraint
+                     , w_nlopt_add_inequality_mconstraint_1
                      , c_nlopt_remove_equality_constraints
                      , c_nlopt_add_equality_constraint
+                     , w_nlopt_add_equality_constraint_1
                      , c_nlopt_add_equality_mconstraint
+                     , w_nlopt_add_equality_mconstraint_1
                        -- * stopping criteria
                      , c_nlopt_set_stopval
                      , c_nlopt_get_stopval
@@ -61,14 +67,13 @@ module Nlopt.Bindings( c_nlopt_algorithm_name
                      , S_nlopt_opt_s(..)
                      ) where
 
-import Foreign
-import Foreign.C.Types
+import Foreign(Ptr, FunPtr)
+import Foreign.C.Types(CUInt(..), CInt(..), CDouble(..), CChar, CULong(..))
 
 import Nlopt.Enums(T_nlopt_result, T_nlopt_algorithm)
 
-type T_nlopt_func = FunPtr (CUInt -> Ptr CDouble -> Ptr CDouble -> Ptr CChar -> IO CDouble)
-type T_nlopt_mfunc = FunPtr (CUInt -> Ptr CDouble -> CUInt -> Ptr CDouble -> Ptr CDouble -> Ptr CChar -> IO (()))
---type T_nlopt_opt = Ptr NloptOptRaw
+type T_nlopt_func = CUInt -> Ptr CDouble -> Ptr CDouble -> Ptr CChar -> IO CDouble
+type T_nlopt_mfunc = CUInt -> Ptr CDouble -> CUInt -> Ptr CDouble -> Ptr CDouble -> Ptr CChar -> IO ()
 data S_nlopt_opt_s = S_nlopt_opt_s
 
 
@@ -99,11 +104,16 @@ foreign import ccall "static /usr/local/include/nlopt.h nlopt_optimize"
   c_nlopt_optimize :: Ptr S_nlopt_opt_s -> Ptr CDouble -> Ptr CDouble -> IO T_nlopt_result
 
 foreign import ccall "static /usr/local/include/nlopt.h nlopt_set_min_objective"
-  c_nlopt_set_min_objective :: Ptr S_nlopt_opt_s -> T_nlopt_func -> Ptr CChar -> IO T_nlopt_result
+  c_nlopt_set_min_objective :: Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> IO T_nlopt_result
+
+foreign import ccall "wrapper"
+  w_nlopt_set_min_objective_1 :: T_nlopt_func -> IO (FunPtr T_nlopt_func)
 
 foreign import ccall "static /usr/local/include/nlopt.h nlopt_set_max_objective"
-  c_nlopt_set_max_objective :: Ptr S_nlopt_opt_s -> T_nlopt_func -> Ptr CChar -> IO T_nlopt_result
+  c_nlopt_set_max_objective :: Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> IO T_nlopt_result
 
+foreign import ccall "wrapper"
+  w_nlopt_set_max_objective_1 :: T_nlopt_func -> IO (FunPtr T_nlopt_func)
 
 foreign import ccall "static /usr/local/include/nlopt.h nlopt_get_algorithm"
   c_nlopt_get_algorithm :: Ptr S_nlopt_opt_s -> IO T_nlopt_algorithm
@@ -136,20 +146,31 @@ foreign import ccall "static /usr/local/include/nlopt.h nlopt_remove_inequality_
   c_nlopt_remove_inequality_constraints :: Ptr S_nlopt_opt_s -> IO T_nlopt_result
 
 foreign import ccall "static /usr/local/include/nlopt.h nlopt_add_inequality_constraint"
-  c_nlopt_add_inequality_constraint :: Ptr S_nlopt_opt_s -> T_nlopt_func -> Ptr CChar -> CDouble -> IO T_nlopt_result
+  c_nlopt_add_inequality_constraint :: Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> CDouble -> IO T_nlopt_result
+
+foreign import ccall "wrapper"
+  w_nlopt_add_inequality_constraint_1 :: T_nlopt_func -> IO (FunPtr T_nlopt_func)
 
 foreign import ccall "static /usr/local/include/nlopt.h nlopt_add_inequality_mconstraint"
-  c_nlopt_add_inequality_mconstraint :: Ptr S_nlopt_opt_s -> CUInt -> T_nlopt_mfunc -> Ptr CChar -> Ptr CDouble -> IO T_nlopt_result
+  c_nlopt_add_inequality_mconstraint :: Ptr S_nlopt_opt_s -> CUInt -> FunPtr T_nlopt_mfunc -> Ptr CChar -> Ptr CDouble -> IO T_nlopt_result
+
+foreign import ccall "wrapper"
+  w_nlopt_add_inequality_mconstraint_1 :: T_nlopt_mfunc -> IO (FunPtr T_nlopt_mfunc)
 
 foreign import ccall "static /usr/local/include/nlopt.h nlopt_remove_equality_constraints"
   c_nlopt_remove_equality_constraints :: Ptr S_nlopt_opt_s -> IO T_nlopt_result
 
 foreign import ccall "static /usr/local/include/nlopt.h nlopt_add_equality_constraint"
-  c_nlopt_add_equality_constraint :: Ptr S_nlopt_opt_s -> T_nlopt_func -> Ptr CChar -> CDouble -> IO T_nlopt_result
+  c_nlopt_add_equality_constraint :: Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> CDouble -> IO T_nlopt_result
+
+foreign import ccall "wrapper"
+  w_nlopt_add_equality_constraint_1 :: T_nlopt_func -> IO (FunPtr T_nlopt_func)
 
 foreign import ccall "static /usr/local/include/nlopt.h nlopt_add_equality_mconstraint"
-  c_nlopt_add_equality_mconstraint :: Ptr S_nlopt_opt_s -> CUInt -> T_nlopt_mfunc -> Ptr CChar -> Ptr CDouble -> IO T_nlopt_result
+  c_nlopt_add_equality_mconstraint :: Ptr S_nlopt_opt_s -> CUInt -> FunPtr T_nlopt_mfunc -> Ptr CChar -> Ptr CDouble -> IO T_nlopt_result
 
+foreign import ccall "wrapper"
+  w_nlopt_add_equality_mconstraint_1 :: T_nlopt_mfunc -> IO (FunPtr T_nlopt_mfunc)
 
 
 -- /* stopping criteria: */

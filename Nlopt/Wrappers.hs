@@ -10,8 +10,8 @@ module Nlopt.Wrappers( -- * misc stuff
                      , nloptCreate
                      , nloptCopy
                      , nloptOptimize
-                     -- , c_nlopt_set_min_objective
-                     -- , c_nlopt_set_max_objective
+                     , nloptSetMinObjective
+                     , nloptSetMaxObjective
                      , nloptGetAlgorithm
                      , nloptGetDimension
                      -- * constraints
@@ -22,11 +22,11 @@ module Nlopt.Wrappers( -- * misc stuff
                      , nloptSetUpperBounds1
                      , nloptGetUpperBounds
                      , nloptRemoveInequalityConstraints
-                     -- , c_nlopt_add_inequality_constraint
-                     -- , c_nlopt_add_inequality_mconstraint
+                     , nloptAddInequalityConstraint
+                     , nloptAddInequalityMConstraint
                      , nloptRemoveEqualityConstraints
-                     -- , c_nlopt_add_equality_constraint
-                     -- , c_nlopt_add_equality_mconstraint
+                     , nloptAddEqualityConstraint
+                     , nloptAddEqualityMConstraint
                      -- * stopping criteria
                      , nloptSetStopVal
                      , nloptGetStopval
@@ -70,7 +70,7 @@ data NloptOpt = NloptOpt (ForeignPtr S_nlopt_opt_s) deriving Show
 
 
 ----------------------------------------------------------------------------------
------------------------------- library wrappers ----------------------------------
+----------------------------------- misc -----------------------------------------
 ----------------------------------------------------------------------------------
 
 --c_nlopt_algorithm_name :: T_nlopt_algorithm -> IO (Ptr CChar)
@@ -103,6 +103,9 @@ nloptVersion = unsafePerformIO $ do
   free d3'
   return (fromIntegral d1, fromIntegral d2, fromIntegral d3)
 
+
+----------------------------------------------------------------------------------
+------------------------------------- API ----------------------------------------
 ----------------------------------------------------------------------------------
 
 --c_nlopt_create :: T_nlopt_algorithm -> CUInt -> IO (Ptr S_nlopt_opt_s)
@@ -135,9 +138,13 @@ nloptOptimize opt@(NloptOpt optRaw) = do
   free optF'
   return (map realToFrac optX, realToFrac optF, result)
 
---c_nlopt_set_min_objective :: Ptr S_nlopt_opt_s -> T_nlopt_func -> Ptr CChar -> IO T_nlopt_result
+--c_nlopt_set_min_objective :: Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> IO T_nlopt_result
+nloptSetMinObjective :: NloptOpt -> T_nlopt_func -> IO NloptResult
+nloptSetMinObjective = setObjective w_nlopt_set_min_objective_1 c_nlopt_set_min_objective
 
---c_nlopt_set_max_objective :: Ptr S_nlopt_opt_s -> T_nlopt_func -> Ptr CChar -> IO T_nlopt_result
+--c_nlopt_set_max_objective :: Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> IO T_nlopt_result
+nloptSetMaxObjective :: NloptOpt -> T_nlopt_func -> IO NloptResult
+nloptSetMaxObjective = setObjective w_nlopt_set_max_objective_1 c_nlopt_set_max_objective
 
 --c_nlopt_get_algorithm :: Ptr S_nlopt_opt_s -> IO T_nlopt_algorithm
 nloptGetAlgorithm :: NloptOpt -> IO NloptAlgorithm
@@ -147,7 +154,10 @@ nloptGetAlgorithm (NloptOpt optRaw) = liftM algorithmFromCInt $ withForeignPtr o
 nloptGetDimension :: NloptOpt -> IO Int
 nloptGetDimension (NloptOpt optRaw) = liftM fromIntegral $ withForeignPtr optRaw c_nlopt_get_dimension
 
--- /* constraints: */
+
+----------------------------------------------------------------------------------
+------------------------------- constraints --------------------------------------
+----------------------------------------------------------------------------------
 
 --c_nlopt_set_lower_bounds :: Ptr S_nlopt_opt_s -> Ptr CDouble -> IO T_nlopt_result
 nloptSetLowerBounds :: NloptOpt -> [Double] -> IO NloptResult
@@ -187,25 +197,35 @@ nloptGetUpperBounds opt@(NloptOpt optRaw) = do
   
 --c_nlopt_remove_inequality_constraints :: Ptr S_nlopt_opt_s -> IO T_nlopt_result
 nloptRemoveInequalityConstraints :: NloptOpt -> IO NloptResult
-nloptRemoveInequalityConstraints (NloptOpt optRaw) = 
-  liftM nloptResultFromCInt $ withForeignPtr optRaw c_nlopt_remove_inequality_constraints
+nloptRemoveInequalityConstraints = removeConstraints c_nlopt_remove_inequality_constraints
   
---c_nlopt_add_inequality_constraint :: Ptr S_nlopt_opt_s -> T_nlopt_func -> Ptr CChar -> CDouble -> IO T_nlopt_result
-  
---c_nlopt_add_inequality_mconstraint :: Ptr S_nlopt_opt_s -> CUInt -> T_nlopt_mfunc -> Ptr CChar -> Ptr CDouble -> IO T_nlopt_result
+--c_nlopt_add_inequality_constraint :: Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> CDouble -> IO T_nlopt_result
+nloptAddInequalityConstraint :: NloptOpt -> T_nlopt_func -> Double -> IO NloptResult
+nloptAddInequalityConstraint = addConstraint c_nlopt_add_inequality_constraint w_nlopt_add_inequality_constraint_1
+
+--c_nlopt_add_inequality_mconstraint :: Ptr S_nlopt_opt_s -> CUInt -> FunPtr T_nlopt_mfunc -> Ptr CChar -> Ptr CDouble -> IO T_nlopt_result
+nloptAddInequalityMConstraint :: NloptOpt -> T_nlopt_mfunc -> [Double] -> IO NloptResult
+nloptAddInequalityMConstraint =
+  addMConstraint c_nlopt_add_inequality_mconstraint w_nlopt_add_inequality_mconstraint_1
 
 --c_nlopt_remove_equality_constraints :: Ptr S_nlopt_opt_s -> IO T_nlopt_result
 nloptRemoveEqualityConstraints :: NloptOpt -> IO NloptResult
 nloptRemoveEqualityConstraints (NloptOpt optRaw) =
   liftM nloptResultFromCInt $ withForeignPtr optRaw c_nlopt_remove_equality_constraints
   
---c_nlopt_add_equality_constraint :: Ptr S_nlopt_opt_s -> T_nlopt_func -> Ptr CChar -> CDouble -> IO T_nlopt_result
+--c_nlopt_add_equality_constraint :: Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> CDouble -> IO T_nlopt_result
+nloptAddEqualityConstraint :: NloptOpt -> T_nlopt_func -> Double -> IO NloptResult
+nloptAddEqualityConstraint = addConstraint c_nlopt_add_equality_constraint w_nlopt_add_equality_constraint_1
   
---c_nlopt_add_equality_mconstraint :: Ptr S_nlopt_opt_s -> CUInt -> T_nlopt_mfunc -> Ptr CChar -> Ptr CDouble -> IO T_nlopt_result
+--c_nlopt_add_equality_mconstraint :: Ptr S_nlopt_opt_s -> CUInt -> FunPtr T_nlopt_mfunc -> Ptr CChar -> Ptr CDouble -> IO T_nlopt_result
+nloptAddEqualityMConstraint :: NloptOpt -> T_nlopt_mfunc -> [Double] -> IO NloptResult
+nloptAddEqualityMConstraint =
+  addMConstraint c_nlopt_add_equality_mconstraint w_nlopt_add_equality_mconstraint_1
 
 
-
--- /* stopping criteria: */
+----------------------------------------------------------------------------------
+----------------------------- stopping criteria ----------------------------------
+----------------------------------------------------------------------------------
 
 --c_nlopt_set_stopval :: Ptr S_nlopt_opt_s -> CDouble -> IO T_nlopt_result
 nloptSetStopVal :: NloptOpt -> Double -> IO NloptResult
@@ -286,7 +306,9 @@ nloptGetForceStop :: NloptOpt -> IO Int
 nloptGetForceStop = getIntegral c_nlopt_get_force_stop
 
 
--- /* more algorithm-specific parameters */
+----------------------------------------------------------------------------------
+------------------- more algorithm-specific parameters ---------------------------
+----------------------------------------------------------------------------------
 
 --c_nlopt_set_local_optimizer :: Ptr S_nlopt_opt_s -> Ptr S_nlopt_opt_s -> IO T_nlopt_result
 nloptSetLocalOptimizer :: NloptOpt -> NloptOpt -> IO NloptResult
@@ -336,9 +358,8 @@ nloptGetInitialStep (NloptOpt optRaw) x = do
   return (map realToFrac dx, nloptResultFromCInt result)
 
 
-
 ----------------------------------------------------------------------------------
--------------------------- reusable utility functions ----------------------------
+------------------------- (reusable utility functions) ---------------------------
 ----------------------------------------------------------------------------------
 
 setSomething :: (a -> b) -> (Ptr S_nlopt_opt_s -> b -> IO T_nlopt_result) -> NloptOpt -> a -> IO NloptResult
@@ -366,3 +387,35 @@ getDouble = getSomething realToFrac
 
 getIntegral :: (Integral a, Num b) => (Ptr S_nlopt_opt_s -> IO a) -> NloptOpt -> IO b
 getIntegral = getSomething fromIntegral
+
+removeConstraints :: (Ptr S_nlopt_opt_s -> IO T_nlopt_result) -> NloptOpt -> IO NloptResult
+removeConstraints cFun (NloptOpt optRaw) = liftM nloptResultFromCInt $ withForeignPtr optRaw cFun
+
+setObjective :: (T_nlopt_func -> IO (FunPtr T_nlopt_func))
+                -> (Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> IO T_nlopt_result)
+                -> NloptOpt
+                -> T_nlopt_func
+                -> IO NloptResult
+setObjective wrapperFun cFun (NloptOpt optRaw) fun = do
+  funPtr <- wrapperFun fun
+  res <- withForeignPtr optRaw $ (\optRaw' -> cFun optRaw' funPtr nullPtr)
+  return (nloptResultFromCInt res)
+
+addConstraint :: (Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> CDouble -> IO T_nlopt_result)
+                 -> (T_nlopt_func -> IO (FunPtr T_nlopt_func))
+                 -> NloptOpt -> T_nlopt_func -> Double -> IO NloptResult
+addConstraint cFun wrapperFun (NloptOpt optRaw) fun tol = do
+  funPtr <- wrapperFun fun
+  res <- withForeignPtr optRaw $ \optRaw' -> cFun optRaw' funPtr nullPtr (realToFrac tol)
+  return (nloptResultFromCInt res)
+
+addMConstraint :: (Ptr S_nlopt_opt_s -> CUInt -> FunPtr T_nlopt_mfunc -> Ptr CChar -> Ptr CDouble -> IO T_nlopt_result)
+                 -> (T_nlopt_mfunc -> IO (FunPtr T_nlopt_mfunc))
+                 -> NloptOpt -> T_nlopt_mfunc -> [Double] -> IO NloptResult
+addMConstraint cFun wrapperFun (NloptOpt optRaw) fun tol = do
+  let dim = length tol
+  funPtr <- wrapperFun fun
+  tol' <- newArray (map realToFrac tol)
+  res <- withForeignPtr optRaw $ \optRaw' -> cFun optRaw' (fromIntegral dim) funPtr nullPtr tol'
+  free tol'
+  return (nloptResultFromCInt res)
