@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wall #-}
-{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 module Nlopt.Wrappers( -- * misc stuff
                        nloptAlgorithmName
@@ -98,8 +97,7 @@ instance Show NloptOpt where
 nloptAlgorithmName :: NloptAlgorithm -> String
 nloptAlgorithmName alg = unsafePerformIO $ do
   char <- c_nlopt_algorithm_name (algorithmToCInt alg)
-  string <- peekCString char
-  return string
+  peekCString char
 
 --c_nlopt_srand :: CULong -> IO ()
 nloptSRand :: Int -> IO ()
@@ -132,7 +130,7 @@ nloptVersion = unsafePerformIO $ do
 --c_nlopt_create :: T_nlopt_algorithm -> CUInt -> IO (Ptr S_nlopt_opt_s)
 nloptCreate :: NloptAlgorithm -> Int -> IO NloptOpt
 nloptCreate algorithm dimensions = do
-  unfinalized <- (c_nlopt_create (algorithmToCInt algorithm) (fromIntegral dimensions))
+  unfinalized <- c_nlopt_create (algorithmToCInt algorithm) (fromIntegral dimensions)
   optRaw <- newForeignPtr c_nlopt_destroy unfinalized
   return (NloptOpt optRaw)
 
@@ -419,7 +417,7 @@ setObjective :: (T_nlopt_func -> IO (FunPtr T_nlopt_func))
                 -> IO NloptResult
 setObjective wrapperFun cFun (NloptOpt optRaw) fun = do
   funPtr <- wrapperFun fun
-  res <- withForeignPtr optRaw $ (\optRaw' -> cFun optRaw' funPtr nullPtr)
+  res <- withForeignPtr optRaw $ \optRaw' -> cFun optRaw' funPtr nullPtr
   return (nloptResultFromCInt res)
 
 addConstraint :: (Ptr S_nlopt_opt_s -> FunPtr T_nlopt_func -> Ptr CChar -> CDouble -> IO T_nlopt_result)

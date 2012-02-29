@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wall #-}
-{-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 module Nlopt( optimize
             , defaultOptimize
@@ -73,7 +72,7 @@ optimize cfg = do
   ret@(xOpt, fOpt, res) <- nloptOptimize opt
   
   putStrLn ""
-  putStrLn $ show opt
+  print opt
 
   putStrLn $ "\nresult: " ++ show res
   putStrLn $ "xOpt:   " ++ show xOpt
